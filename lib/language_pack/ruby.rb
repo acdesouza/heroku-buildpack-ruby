@@ -97,7 +97,7 @@ class LanguagePack::Ruby < LanguagePack::Base
         build_bundler
         create_database_yml
         install_binaries
-        install_binaries_3rd
+        install_binaries_php_buildpack
         run_assets_precompile_rake_task
       end
       super
