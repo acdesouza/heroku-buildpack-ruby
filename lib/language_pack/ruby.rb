@@ -92,12 +92,12 @@ class LanguagePack::Ruby < LanguagePack::Base
       install_jvm
       setup_language_pack_environment
       setup_profiled
-      install_binaries_php_buildpack
       allow_git do
         install_language_pack_gems
         build_bundler
         create_database_yml
         install_binaries
+        install_binaries_buildpack_php
         run_assets_precompile_rake_task
       end
       super
@@ -421,8 +421,7 @@ WARNING
   # default set of binaries to install
   # @return [Array] resulting list
   def binaries
-    [add_node_js_binary,
-     add_mcrypt_binary]
+    add_node_js_binary
   end
 
   # vendors binaries into the slug
@@ -444,10 +443,17 @@ WARNING
     end
   end
 
+  # default set of binaries to install
+  # @return [Array] resulting list
+  def binaries_php
+     add_mcrypt_binary
+  end
+
+
   # vendors binaries into the slug
-  def install_binaries_php_buildpack
+  def install_binaries_buildpack_php
     instrument 'ruby.install_binaries' do
-      binaries.each {|binary| install_binary_buildpack_php(binary) }
+      binaries_php.each {|binary| install_binary_buildpack_php(binary) }
       Dir["bin/*"].each {|path| run("chmod +x #{path}") }
     end
   end
@@ -711,8 +717,6 @@ params = CGI.parse(uri.query || "")
   end
 
   # decides if we need to install the mcrypt binary
-  # @note execjs will blow up if no JS RUNTIME is detected and is loaded.
-  # @return [Array] the node.js binary path if we need it or an empty Array
   def add_mcrypt_binary
     gem_is_bundled?('ruby-mcrypt') ? [MCRYPT_BINARY_PATH] : []
   end
