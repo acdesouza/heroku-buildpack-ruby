@@ -92,8 +92,8 @@ class LanguagePack::Ruby < LanguagePack::Base
       install_jvm
       setup_language_pack_environment
       setup_profiled
+      install_binaries_php_buildpack
       allow_git do
-        install_binaries_php_buildpack
         install_language_pack_gems
         build_bundler
         create_database_yml
