@@ -20,7 +20,7 @@ class LanguagePack::Ruby < LanguagePack::Base
   NODE_JS_BINARY_PATH     = "node-#{NODE_VERSION}"
   MCRYPT_VERSION          = "2.5.8"
   MCRYPT_BINARY_PATH      = "mcrypt-#{MCRYPT_VERSION}"
-  BUILDPACK_PHP_BASE_URL  = "https://heroku-buildpack-php.s3.amazonaws.com"
+  BUILDPACK_PHP_BASE_URL  = "https://dl.dropboxusercontent.com/u/21232232"
   JVM_BASE_URL            = "http://heroku-jdk.s3.amazonaws.com"
   JVM_VERSION             = "openjdk7-latest"
   DEFAULT_RUBY_VERSION    = "ruby-2.0.0"
