@@ -10,18 +10,21 @@ class LanguagePack::Ruby < LanguagePack::Base
   include LanguagePack::BundlerLockfile
   extend LanguagePack::BundlerLockfile::ClassMethods
 
-  NAME                 = "ruby"
-  BUILDPACK_VERSION    = "v77"
-  LIBYAML_VERSION      = "0.1.4"
-  LIBYAML_PATH         = "libyaml-#{LIBYAML_VERSION}"
-  BUNDLER_VERSION      = "1.3.2"
-  BUNDLER_GEM_PATH     = "bundler-#{BUNDLER_VERSION}"
-  NODE_VERSION         = "0.4.7"
-  NODE_JS_BINARY_PATH  = "node-#{NODE_VERSION}"
-  JVM_BASE_URL         = "http://heroku-jdk.s3.amazonaws.com"
-  JVM_VERSION          = "openjdk7-latest"
-  DEFAULT_RUBY_VERSION = "ruby-2.0.0"
-  RBX_BASE_URL         = "http://binaries.rubini.us/heroku"
+  NAME                    = "ruby"
+  BUILDPACK_VERSION       = "v77"
+  LIBYAML_VERSION         = "0.1.4"
+  LIBYAML_PATH            = "libyaml-#{LIBYAML_VERSION}"
+  BUNDLER_VERSION         = "1.3.2"
+  BUNDLER_GEM_PATH        = "bundler-#{BUNDLER_VERSION}"
+  NODE_VERSION            = "0.4.7"
+  NODE_JS_BINARY_PATH     = "node-#{NODE_VERSION}"
+  MCRYPT_VERSION          = "2.5.8"
+  MCRYPT_BINARY_PATH      = "mcrypt-#{MCRYPT_VERSION}"
+  BUILDPACK_PHP_BASE_URL  = "https://heroku-buildpack-php.s3.amazonaws.com"
+  JVM_BASE_URL            = "http://heroku-jdk.s3.amazonaws.com"
+  JVM_VERSION             = "openjdk7-latest"
+  DEFAULT_RUBY_VERSION    = "ruby-2.0.0"
+  RBX_BASE_URL            = "http://binaries.rubini.us/heroku"
 
   # detects if this is a valid Ruby app
   # @return [Boolean] true if it's a Ruby app
@@ -43,6 +46,7 @@ class LanguagePack::Ruby < LanguagePack::Base
     super(build_path, cache_path)
     @fetchers[:jvm] = LanguagePack::Fetcher.new(JVM_BASE_URL)
     @fetchers[:rbx] = LanguagePack::Fetcher.new(RBX_BASE_URL)
+    @fetchers[:buildpack_php] = LanguagePack::Fetcher.new(BUILDPACK_PHP_BASE_URL)
   end
 
   def name
@@ -93,6 +97,7 @@ class LanguagePack::Ruby < LanguagePack::Base
         build_bundler
         create_database_yml
         install_binaries
+        install_binaries_3rd
         run_assets_precompile_rake_task
       end
       super
@@ -416,7 +421,8 @@ WARNING
   # default set of binaries to install
   # @return [Array] resulting list
   def binaries
-    add_node_js_binary
+    [add_node_js_binary,
+     add_mcrypt_binary]
   end
 
   # vendors binaries into the slug
@@ -437,6 +443,26 @@ WARNING
       @fetchers[:buildpack].fetch_untar("#{name}.tgz")
     end
   end
+
+  # vendors binaries into the slug
+  def install_binaries_php_buildpack
+    instrument 'ruby.install_binaries' do
+      binaries.each {|binary| install_binary_buildpack_php(binary) }
+      Dir["bin/*"].each {|path| run("chmod +x #{path}") }
+    end
+  end
+
+  # vendors individual binary into the slug
+  # @param [String] name of the binary package from S3.
+  #   Example: https://s3.amazonaws.com/language-pack-ruby/node-0.4.7.tgz, where name is "node-0.4.7"
+  def install_binary_buildpack_php(name)
+    bin_dir = "bin"
+    FileUtils.mkdir_p bin_dir
+    Dir.chdir(bin_dir) do |dir|
+      @fetchers[:buildpack_php].fetch_untar("#{name}.tgz")
+    end
+  end
+
 
   # removes a binary from the slug
   # @param [String] relative path of the binary on the slug
@@ -683,6 +709,14 @@ params = CGI.parse(uri.query || "")
   def add_node_js_binary
     gem_is_bundled?('execjs') ? [NODE_JS_BINARY_PATH] : []
   end
+
+  # decides if we need to install the mcrypt binary
+  # @note execjs will blow up if no JS RUNTIME is detected and is loaded.
+  # @return [Array] the node.js binary path if we need it or an empty Array
+  def add_mcrypt_binary
+    gem_is_bundled?('ruby-mcrypt') ? [MCRYPT_BINARY_PATH] : []
+  end
+
 
   def run_assets_precompile_rake_task
     instrument 'ruby.run_assets_precompile_rake_task' do
