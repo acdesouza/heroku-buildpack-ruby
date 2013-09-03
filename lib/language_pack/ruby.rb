@@ -466,7 +466,7 @@ WARNING
     FileUtils.mkdir_p bin_dir
     Dir.chdir(bin_dir) do |dir|
       @fetchers[:buildpack_php].fetch_untar("#{name}.tgz")
-      puts "\n>>>>>>>>>>>>>>>>>>>#{dir}\n<<<<<<<<<<<<<<<<<\n"
+      puts "\n>>>>>>>>>>>>>>>>>>>#{dir.inspect}\n<<<<<<<<<<<<<<<<<\n"
     end
   end
 
