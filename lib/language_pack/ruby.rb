@@ -466,6 +466,7 @@ WARNING
     FileUtils.mkdir_p bin_dir
     Dir.chdir(bin_dir) do |dir|
       @fetchers[:buildpack_php].fetch_untar("#{name}.tgz")
+      puts "\n>>>>>>>>>>>>>>>>>>>#{dir}\n<<<<<<<<<<<<<<<<<\n"
     end
   end
 
@@ -514,6 +515,7 @@ WARNING
         bundle_without = ENV["BUNDLE_WITHOUT"] || "development:test"
         bundle_bin     = "bundle"
         bundle_command = "#{bundle_bin} install --without #{bundle_without} --path vendor/bundle --binstubs #{bundler_binstubs_path}"
+        bundle_config  = "#{bundle_bin} config build.ruby-mcrypt --with-mcrypt-dir=lib/mcrypt/prefix"
 
         unless File.exist?("Gemfile.lock")
           error "Gemfile.lock is required. Please run \"bundle install\" locally\nand commit your Gemfile.lock."
@@ -555,7 +557,7 @@ WARNING
           env_vars      += " BUNDLER_LIB_PATH=#{bundler_path}" if ruby_version && ruby_version.match(/^ruby-1\.8\.7/)
           puts "Running: #{bundle_command}"
           instrument "ruby.bundle_install" do
-            bundler_output << pipe("#{env_vars} #{bundle_command} --no-clean 2>&1")
+            bundler_output << pipe("#{env_vars} #{bundle_config} #{bundle_command} --no-clean 2>&1")
           end
         end
 
