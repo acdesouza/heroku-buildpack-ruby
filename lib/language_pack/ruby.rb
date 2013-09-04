@@ -467,6 +467,7 @@ WARNING
       FileUtils.mkdir_p dir
       Dir.chdir(dir) do |dir|
         @fetchers[:libmcrypt].fetch_untar("#{LIBMCRYPT_PATH}.gz")
+        pwd = run("pwd").chomp
         puts ">>>>>>>>>>\n#{pwd}\n>>>>>>>>>>>>>>"
       end
     end if depends_on_mcrypt_binary?
