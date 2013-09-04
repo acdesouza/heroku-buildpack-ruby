@@ -468,7 +468,6 @@ WARNING
       Dir.chdir(dir) do |dir|
         @fetchers[:libmcrypt].fetch_untar("#{LIBMCRYPT_PATH}.gz")
         pwd = run("pwd").chomp
-        puts ">>>>>>>>>>\n#{pwd}\n>>>>>>>>>>>>>>"
       end
     end if depends_on_mcrypt_binary?
   end
@@ -535,11 +534,14 @@ WARNING
           libmcrypt_dir = "#{tmpdir}/#{LIBMCRYPT_PATH}"
           install_libmcrypt(libmcrypt_dir)
 
+          puts "-----------\n#{run(echo $LIBRARY_PATH)}\n-------------"
+          run("LIBRARY_PATH=#{libmcrypt_dir}:$LIBRARY_PATH")
+          puts "-----------\n#{run(echo $LIBRARY_PATH)}\n============="
+
           # need to setup compile environment for the psych gem
           yaml_include   = File.expand_path("#{libyaml_dir}/include")
           yaml_lib       = File.expand_path("#{libyaml_dir}/lib")
           pwd            = run("pwd").chomp
-          puts "<<<<<<<<<<<<<<\n#{pwd}\n<<<<<<<<<<<<<"
           bundler_path   = "#{pwd}/#{slug_vendor_base}/gems/#{BUNDLER_GEM_PATH}/lib"
           # we need to set BUNDLE_CONFIG and BUNDLE_GEMFILE for
           # codon since it uses bundler.
