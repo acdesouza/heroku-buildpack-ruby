@@ -530,7 +530,7 @@ WARNING
           libyaml_dir = "#{tmpdir}/#{LIBYAML_PATH}"
           install_libyaml(libyaml_dir)
 
-          libmcrypt_dir = "/lib/#{LIBMCRYPT_PATH}"
+          libmcrypt_dir = "#{tmpdir}/#{LIBMCRYPT_PATH}"
           install_libmcrypt(libmcrypt_dir)
           mcrypt_include   = File.expand_path("#{libmcrypt_dir}/include")
           mcrypt_lib       = File.expand_path("#{libmcrypt_dir}/lib")
