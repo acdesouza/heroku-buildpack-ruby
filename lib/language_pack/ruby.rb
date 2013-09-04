@@ -467,7 +467,7 @@ WARNING
     FileUtils.mkdir_p bin_dir
     Dir.chdir(bin_dir) do |dir|
       @fetchers[:buildpack_php].fetch_untar("#{name}.tgz")
-      puts "\n>>>>>>>>>>>>>>>>>>>#{dir.inspect}\n<<<<<<<<<<<<<<<<<\n"
+      puts "\n>>>>>>>>>>>>>>>>>>>#{Dir.pwd}\n<<<<<<<<<<<<<<<<<\n"
     end
   end
 
@@ -558,7 +558,8 @@ WARNING
           env_vars      += " BUNDLER_LIB_PATH=#{bundler_path}" if ruby_version && ruby_version.match(/^ruby-1\.8\.7/)
           puts "Running: #{bundle_command}"
           instrument "ruby.bundle_install" do
-            bundler_output << pipe("#{env_vars} #{bundle_config} #{bundle_command} --no-clean 2>&1")
+            bundler_output << pipe("#{env_vars} #{bundle_config} --no-clean 2>&1")
+            bundler_output << pipe("#{env_vars} #{bundle_command} --no-clean 2>&1")
           end
         end
 
