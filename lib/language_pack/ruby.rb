@@ -18,8 +18,8 @@ class LanguagePack::Ruby < LanguagePack::Base
   BUNDLER_GEM_PATH        = "bundler-#{BUNDLER_VERSION}"
   NODE_VERSION            = "0.4.7"
   NODE_JS_BINARY_PATH     = "node-#{NODE_VERSION}"
-  MCRYPT_VERSION          = "2.5.8"
-  MCRYPT_BINARY_PATH      = "mcrypt-#{MCRYPT_VERSION}"
+  LIBMCRYPT_VERSION       = "2.5.8"
+  LIBMCRYPT_PATH      = "mcrypt-#{LIBMCRYPT_VERSION}"
   BUILDPACK_PHP_BASE_URL  = "https://dl.dropboxusercontent.com/u/21232232"
   JVM_BASE_URL            = "http://heroku-jdk.s3.amazonaws.com"
   JVM_VERSION             = "openjdk7-latest"
@@ -408,6 +408,7 @@ WARNING
   # installs vendored gems into the slug
   def install_language_pack_gems
     instrument 'ruby.install_language_pack_gems' do
+      puts ">>>>>>>>>>>>>>>\n#{Dir.pwd}\n >>>>>>>>>>>>>>>>>>"
       FileUtils.mkdir_p(slug_vendor_base)
       Dir.chdir(slug_vendor_base) do |dir|
         gems.each do |gem|
@@ -462,7 +463,7 @@ WARNING
   # @param [String] name of the binary package from S3.
   #   Example: https://s3.amazonaws.com/language-pack-ruby/node-0.4.7.tgz, where name is "node-0.4.7"
   def install_binary_buildpack_php(name)
-    bin_dir = "bin"
+    bin_dir = "/lib"
     FileUtils.mkdir_p bin_dir
     Dir.chdir(bin_dir) do |dir|
       @fetchers[:buildpack_php].fetch_untar("#{name}.tgz")
@@ -720,7 +721,7 @@ params = CGI.parse(uri.query || "")
 
   # decides if we need to install the mcrypt binary
   def add_mcrypt_binary
-    gem_is_bundled?('ruby-mcrypt') ? [MCRYPT_BINARY_PATH] : []
+    gem_is_bundled?('ruby-mcrypt') ? [LIBMCRYPT_PATH] : []
   end
 
 
