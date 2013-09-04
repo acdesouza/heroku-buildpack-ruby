@@ -533,6 +533,8 @@ WARNING
 
           libmcrypt_dir = "#{tmpdir}/#{LIBMCRYPT_PATH}"
           install_libmcrypt(libmcrypt_dir)
+          mcrypt_include   = File.expand_path("#{libmcrypt_dir}/include")
+          mcrypt_lib       = File.expand_path("#{libmcrypt_dir}/lib")
 
           puts "-----------\n#{run("echo $LIBRARY_PATH")}\n-------------"
           run("LIBRARY_PATH=#{libmcrypt_dir}:$LIBRARY_PATH")
@@ -545,7 +547,7 @@ WARNING
           bundler_path   = "#{pwd}/#{slug_vendor_base}/gems/#{BUNDLER_GEM_PATH}/lib"
           # we need to set BUNDLE_CONFIG and BUNDLE_GEMFILE for
           # codon since it uses bundler.
-          env_vars       = "env BUNDLE_GEMFILE=#{pwd}/Gemfile BUNDLE_CONFIG=#{pwd}/.bundle/config CPATH=#{yaml_include}:$CPATH CPPATH=#{yaml_include}:$CPPATH LIBRARY_PATH=#{yaml_lib}:$LIBRARY_PATH RUBYOPT=\"#{syck_hack}\" NOKOGIRI_USE_SYSTEM_LIBRARIES=true"
+          env_vars       = "env BUNDLE_GEMFILE=#{pwd}/Gemfile BUNDLE_CONFIG=#{pwd}/.bundle/config CPATH=#{yaml_include}:#{mcrypt_include}:$CPATH CPPATH=#{yaml_include}:#{mcrypt_include}:$CPPATH LIBRARY_PATH=#{yaml_lib}:#{mcrypt_lib}:$LIBRARY_PATH RUBYOPT=\"#{syck_hack}\" NOKOGIRI_USE_SYSTEM_LIBRARIES=true"
           env_vars      += " BUNDLER_LIB_PATH=#{bundler_path}" if ruby_version && ruby_version.match(/^ruby-1\.8\.7/)
           puts "Running: #{bundle_command}"
           instrument "ruby.bundle_install" do
