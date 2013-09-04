@@ -10,21 +10,21 @@ class LanguagePack::Ruby < LanguagePack::Base
   include LanguagePack::BundlerLockfile
   extend LanguagePack::BundlerLockfile::ClassMethods
 
-  NAME                    = "ruby"
-  BUILDPACK_VERSION       = "v77"
-  LIBYAML_VERSION         = "0.1.4"
-  LIBYAML_PATH            = "libyaml-#{LIBYAML_VERSION}"
-  BUNDLER_VERSION         = "1.3.2"
-  BUNDLER_GEM_PATH        = "bundler-#{BUNDLER_VERSION}"
-  NODE_VERSION            = "0.4.7"
-  NODE_JS_BINARY_PATH     = "node-#{NODE_VERSION}"
-  LIBMCRYPT_VERSION       = "2.5.8"
-  LIBMCRYPT_PATH      = "mcrypt-#{LIBMCRYPT_VERSION}"
-  BUILDPACK_PHP_BASE_URL  = "https://dl.dropboxusercontent.com/u/21232232"
-  JVM_BASE_URL            = "http://heroku-jdk.s3.amazonaws.com"
-  JVM_VERSION             = "openjdk7-latest"
-  DEFAULT_RUBY_VERSION    = "ruby-2.0.0"
-  RBX_BASE_URL            = "http://binaries.rubini.us/heroku"
+  NAME                  = "ruby"
+  BUILDPACK_VERSION     = "v77"
+  LIBYAML_VERSION       = "0.1.4"
+  LIBYAML_PATH          = "libyaml-#{LIBYAML_VERSION}"
+  BUNDLER_VERSION       = "1.3.2"
+  BUNDLER_GEM_PATH      = "bundler-#{BUNDLER_VERSION}"
+  NODE_VERSION          = "0.4.7"
+  NODE_JS_BINARY_PATH   = "node-#{NODE_VERSION}"
+  LIBMCRYPT_VERSION     = "2.5.8"
+  LIBMCRYPT_PATH        = "mcrypt-#{LIBMCRYPT_VERSION}"
+  LIBMCRYPT_BASE_URL    = "https://dl.dropboxusercontent.com/u/21232232"
+  JVM_BASE_URL          = "http://heroku-jdk.s3.amazonaws.com"
+  JVM_VERSION           = "openjdk7-latest"
+  DEFAULT_RUBY_VERSION  = "ruby-2.0.0"
+  RBX_BASE_URL          = "http://binaries.rubini.us/heroku"
 
   # detects if this is a valid Ruby app
   # @return [Boolean] true if it's a Ruby app
@@ -46,7 +46,7 @@ class LanguagePack::Ruby < LanguagePack::Base
     super(build_path, cache_path)
     @fetchers[:jvm] = LanguagePack::Fetcher.new(JVM_BASE_URL)
     @fetchers[:rbx] = LanguagePack::Fetcher.new(RBX_BASE_URL)
-    @fetchers[:buildpack_php] = LanguagePack::Fetcher.new(BUILDPACK_PHP_BASE_URL)
+    @fetchers[:libmcrypt] = LanguagePack::Fetcher.new(LIBMCRYPT_BASE_URL)
   end
 
   def name
@@ -97,7 +97,6 @@ class LanguagePack::Ruby < LanguagePack::Base
         build_bundler
         create_database_yml
         install_binaries
-        install_binaries_buildpack_php
         run_assets_precompile_rake_task
       end
       super
@@ -444,34 +443,6 @@ WARNING
     end
   end
 
-  # default set of binaries to install
-  # @return [Array] resulting list
-  def binaries_php
-     add_mcrypt_binary
-  end
-
-
-  # vendors binaries into the slug
-  def install_binaries_buildpack_php
-    instrument 'ruby.install_binaries' do
-      binaries_php.each {|binary| install_binary_buildpack_php(binary) }
-      Dir["bin/*"].each {|path| run("chmod +x #{path}") }
-    end
-  end
-
-  # vendors individual binary into the slug
-  # @param [String] name of the binary package from S3.
-  #   Example: https://s3.amazonaws.com/language-pack-ruby/node-0.4.7.tgz, where name is "node-0.4.7"
-  def install_binary_buildpack_php(name)
-    bin_dir = "/lib"
-    FileUtils.mkdir_p bin_dir
-    Dir.chdir(bin_dir) do |dir|
-      @fetchers[:buildpack_php].fetch_untar("#{name}.tgz")
-      puts "\n>>>>>>>>>>>>>>>>>>>#{Dir.pwd}\n<<<<<<<<<<<<<<<<<\n"
-    end
-  end
-
-
   # removes a binary from the slug
   # @param [String] relative path of the binary on the slug
   def uninstall_binary(path)
@@ -487,6 +458,18 @@ WARNING
         @fetchers[:buildpack].fetch_untar("#{LIBYAML_PATH}.tgz")
       end
     end
+  end
+
+  # install libyaml into the LP to be referenced for psych compilation
+  # @param [String] tmpdir to store the libyaml files
+  def install_libmcrypt(dir)
+    instrument 'ruby.install_libmcrypt' do
+      FileUtils.mkdir_p dir
+      Dir.chdir(dir) do |dir|
+        @fetchers[:libmcrypt].fetch_untar("#{LIBMCRYPT_PATH}.gz")
+        puts ">>>>>>>>>>\n#{pwd}\n>>>>>>>>>>>>>>"
+      end
+    end if depends_on_mcrypt_binary?
   end
 
   # remove `vendor/bundle` that comes from the git repo
@@ -543,9 +526,15 @@ WARNING
         load_bundler_cache
 
         bundler_output = ""
+
         Dir.mktmpdir("libyaml-") do |tmpdir|
           libyaml_dir = "#{tmpdir}/#{LIBYAML_PATH}"
           install_libyaml(libyaml_dir)
+
+          libmcrypt_dir = "#{tmpdir}/#{LIBMCRYPT_PATH}"
+          install_libmcrypt(libmcrypt_dir)
+
+          puts "<<<<<<<<<<<<<<\n#{pwd}\n<<<<<<<<<<<<<"
 
           # need to setup compile environment for the psych gem
           yaml_include   = File.expand_path("#{libyaml_dir}/include")
@@ -558,7 +547,6 @@ WARNING
           env_vars      += " BUNDLER_LIB_PATH=#{bundler_path}" if ruby_version && ruby_version.match(/^ruby-1\.8\.7/)
           puts "Running: #{bundle_command}"
           instrument "ruby.bundle_install" do
-            bundler_output << pipe("#{env_vars} #{bundle_config} --no-clean 2>&1")
             bundler_output << pipe("#{env_vars} #{bundle_command} --no-clean 2>&1")
           end
         end
@@ -720,9 +708,8 @@ params = CGI.parse(uri.query || "")
     gem_is_bundled?('execjs') ? [NODE_JS_BINARY_PATH] : []
   end
 
-  # decides if we need to install the mcrypt binary
-  def add_mcrypt_binary
-    gem_is_bundled?('ruby-mcrypt') ? [LIBMCRYPT_PATH] : []
+  def depends_on_mcrypt_binary?
+    gem_is_bundled?('ruby-mcrypt')
   end
 
 
