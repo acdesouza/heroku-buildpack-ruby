@@ -467,7 +467,6 @@ WARNING
       FileUtils.mkdir_p dir
       Dir.chdir(dir) do |dir|
         @fetchers[:libmcrypt].fetch_untar("#{LIBMCRYPT_PATH}.gz")
-        pwd = run("pwd").chomp
       end
     end if depends_on_mcrypt_binary?
   end
@@ -531,14 +530,10 @@ WARNING
           libyaml_dir = "#{tmpdir}/#{LIBYAML_PATH}"
           install_libyaml(libyaml_dir)
 
-          libmcrypt_dir = "#{tmpdir}/#{LIBMCRYPT_PATH}"
+          libmcrypt_dir = "/lib/#{LIBMCRYPT_PATH}"
           install_libmcrypt(libmcrypt_dir)
           mcrypt_include   = File.expand_path("#{libmcrypt_dir}/include")
           mcrypt_lib       = File.expand_path("#{libmcrypt_dir}/lib")
-
-          puts "-----------\n#{run("echo $LIBRARY_PATH")}\n-------------"
-          run("LIBRARY_PATH=#{libmcrypt_dir}:$LIBRARY_PATH")
-          puts "-----------\n#{run("echo $LIBRARY_PATH")}\n============="
 
           # need to setup compile environment for the psych gem
           yaml_include   = File.expand_path("#{libyaml_dir}/include")
@@ -551,6 +546,7 @@ WARNING
           env_vars      += " BUNDLER_LIB_PATH=#{bundler_path}" if ruby_version && ruby_version.match(/^ruby-1\.8\.7/)
           puts "Running: #{bundle_command}"
           instrument "ruby.bundle_install" do
+            bundler_output << pipe("#{env_vars}")
             bundler_output << pipe("#{env_vars} #{bundle_command} --no-clean 2>&1")
           end
         end
