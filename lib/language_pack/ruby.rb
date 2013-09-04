@@ -534,9 +534,9 @@ WARNING
           libmcrypt_dir = "#{tmpdir}/#{LIBMCRYPT_PATH}"
           install_libmcrypt(libmcrypt_dir)
 
-          puts "-----------\n#{run(echo $LIBRARY_PATH)}\n-------------"
+          puts "-----------\n#{run("echo $LIBRARY_PATH")}\n-------------"
           run("LIBRARY_PATH=#{libmcrypt_dir}:$LIBRARY_PATH")
-          puts "-----------\n#{run(echo $LIBRARY_PATH)}\n============="
+          puts "-----------\n#{run("echo $LIBRARY_PATH")}\n============="
 
           # need to setup compile environment for the psych gem
           yaml_include   = File.expand_path("#{libyaml_dir}/include")
