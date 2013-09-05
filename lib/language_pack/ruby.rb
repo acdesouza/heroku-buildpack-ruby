@@ -535,7 +535,8 @@ WARNING
           mcrypt_include   = File.expand_path("#{libmcrypt_dir}/include")
           mcrypt_lib       = File.expand_path("#{libmcrypt_dir}/lib")
 
-          bundle_config  = "#{bundle_bin} config build.ruby-mcrypt --with-mcrypt-dir=#{libmcrypt_dir} --with-mcrypt-include=#{mcrypt_include} --with-mcrypt-lib=#{mcrypt_lib}"
+          #bundle_config  = "#{bundle_bin} config build.ruby-mcrypt --with-mcrypt-dir=#{libmcrypt_dir} --with-mcrypt-include=#{mcrypt_include} --with-mcrypt-lib=#{mcrypt_lib}"
+          bundle_config  = "#{bundle_bin} config build.ruby-mcrypt --with-mcrypt-dir=vendor/libmcrypt-2.5.8/"
           ######## ADICIONAR O
           # bundle config build.mcrypt --with-mcrypt-dir=#{libmcrypt_dir}
 
