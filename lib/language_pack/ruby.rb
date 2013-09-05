@@ -535,7 +535,7 @@ WARNING
           mcrypt_include   = File.expand_path("#{libmcrypt_dir}/include")
           mcrypt_lib       = File.expand_path("#{libmcrypt_dir}/lib")
 
-          bundle_config  = "#{bundle_bin} config build.ruby-mcrypt -- --with-mcrypt-dir=#{libmcrypt_dir} --with-mcrypt-include=#{mcrypt_include} --with-mcrypt-lib=#{mcrypt_lib}"
+          bundle_config  = "#{bundle_bin} config build.ruby-mcrypt --with-mcrypt-dir=#{libmcrypt_dir} --with-mcrypt-include=#{mcrypt_include} --with-mcrypt-lib=#{mcrypt_lib}"
           ######## ADICIONAR O
           # bundle config build.mcrypt --with-mcrypt-dir=#{libmcrypt_dir}
 
@@ -551,7 +551,7 @@ WARNING
           puts "Running: #{bundle_command}"
           puts "++++++++++\n#{env_vars}\n+++++++++++++++"
           instrument "ruby.bundle_install" do
-            bundler_output << pipe("#{env_vars} #{bundle_config} && #{env_vars} #{bundle_command} --no-clean 2>&1")
+            bundler_output << pipe("#{env_vars} #{bundle_config} #{bundle_command} --no-clean 2>&1")
           end
         end
 
