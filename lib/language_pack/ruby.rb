@@ -498,7 +498,7 @@ WARNING
         bundle_without = ENV["BUNDLE_WITHOUT"] || "development:test"
         bundle_bin     = "bundle"
         bundle_command = "#{bundle_bin} install --without #{bundle_without} --path vendor/bundle --binstubs #{bundler_binstubs_path}"
-        bundle_config  = "#{bundle_bin} config build.ruby-mcrypt --with-mcrypt-dir=lib/mcrypt/prefix"
+        #bundle_config  = "#{bundle_bin} config build.ruby-mcrypt --with-mcrypt-dir=lib/mcrypt/prefix"
 
         unless File.exist?("Gemfile.lock")
           error "Gemfile.lock is required. Please run \"bundle install\" locally\nand commit your Gemfile.lock."
@@ -534,7 +534,8 @@ WARNING
           install_libmcrypt(libmcrypt_dir)
           mcrypt_include   = File.expand_path("#{libmcrypt_dir}/include")
           mcrypt_lib       = File.expand_path("#{libmcrypt_dir}/lib")
-          bundle_config  = "#{bundle_bin} config build.ruby-mcrypt --with-mcrypt-dir=#{libmcrypt_dir}"
+
+          bundle_config  = "#{bundle_bin} config build.ruby-mcrypt -- --with-mcrypt-dir=#{libmcrypt_dir} --with-mcrypt-include=#{mcrypt_include} --with-mcrypt-lib=#{mcrypt_lib}"
           ######## ADICIONAR O
           # bundle config build.mcrypt --with-mcrypt-dir=#{libmcrypt_dir}
 
