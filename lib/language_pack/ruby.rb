@@ -549,10 +549,9 @@ WARNING
           env_vars       = "env BUNDLE_GEMFILE=#{pwd}/Gemfile BUNDLE_CONFIG=#{pwd}/.bundle/config CPATH=#{yaml_include}:#{mcrypt_include}:$CPATH CPPATH=#{yaml_include}:#{mcrypt_include}:$CPPATH LIBRARY_PATH=#{yaml_lib}:#{mcrypt_lib}:$LIBRARY_PATH RUBYOPT=\"#{syck_hack}\" NOKOGIRI_USE_SYSTEM_LIBRARIES=true"
           env_vars      += " BUNDLER_LIB_PATH=#{bundler_path}" if ruby_version && ruby_version.match(/^ruby-1\.8\.7/)
           puts "Running: #{bundle_command}"
+          puts "++++++++++\n#{env_vars}\n+++++++++++++++"
           instrument "ruby.bundle_install" do
-            bundler_output << pipe("#{env_vars}")
-            bundler_output << pipe("#{env_vars} #{bundle_config}")
-            bundler_output << pipe("#{env_vars} #{bundle_command} --no-clean 2>&1")
+            bundler_output << pipe("#{env_vars} #{bundle_config} && #{env_vars} #{bundle_command} --no-clean 2>&1")
           end
         end
 
